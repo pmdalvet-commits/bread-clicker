@@ -76,6 +76,20 @@
 
     let countries = countryNames.map(name => ({ name, crumbs: 0 }));
 
+    // Carregar progresso salvo
+    if (localStorage.getItem("crumbs")) {
+      crumbs = parseInt(localStorage.getItem("crumbs"));
+      perClick = parseInt(localStorage.getItem("perClick")) || 1;
+      playerCountry = localStorage.getItem("playerCountry") || null;
+      scoreDisplay.textContent = "Migalhas: " + crumbs;
+    }
+
+    function saveProgress() {
+      localStorage.setItem("crumbs", crumbs);
+      localStorage.setItem("perClick", perClick);
+      if (playerCountry) localStorage.setItem("playerCountry", playerCountry);
+    }
+
     function updateLeaderboard(filter = "") {
       board.innerHTML = "";
       countries
@@ -96,6 +110,7 @@
       scoreDisplay.textContent = "Migalhas: " + crumbs;
       let country = countries.find(c => c.name === playerCountry);
       if (country) country.crumbs += perClick;
+      saveProgress();
       updateLeaderboard(searchInput.value);
     };
 
@@ -104,6 +119,7 @@
         crumbs -= 10;
         perClick++;
         scoreDisplay.textContent = "Migalhas: " + crumbs;
+        saveProgress();
       }
     };
 
@@ -112,6 +128,7 @@
       if (countryNames.includes(chosen)) {
         playerCountry = chosen;
         alert("Você entrou na Crumb Cup representando " + playerCountry + "!");
+        saveProgress();
       } else {
         alert("País não encontrado. Escreva em PT-BR conforme a lista.");
       }
@@ -120,6 +137,16 @@
     searchInput.oninput = () => {
       updateLeaderboard(searchInput.value);
     };
+
+    // Simulação: outros países também ganham migalhas automaticamente
+    setInterval(() => {
+      countries.forEach(c => {
+        if (c.name !== playerCountry) {
+          c.crumbs += Math.floor(Math.random() * 3); // cada país ganha 0-2 migalhas
+        }
+      });
+      updateLeaderboard(searchInput.value);
+    }, 2000);
 
     updateLeaderboard();
   </script>
