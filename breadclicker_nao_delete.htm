@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Bread Clicker</title>
+  <style>
+    body { text-align: center; font-family: Arial, sans-serif; background: #fdf6e3; }
+    #bread { font-size: 100px; cursor: pointer; margin: 20px; }
+    #score { font-size: 24px; margin: 10px; }
+    button { margin: 5px; padding: 10px 20px; cursor: pointer; }
+    #leaderboard { margin-top: 30px; max-height: 400px; overflow-y: scroll; }
+    table { margin: auto; border-collapse: collapse; width: 90%; }
+    th, td { border: 1px solid #333; padding: 6px 10px; }
+    th { background: #eee; }
+    #countryInput, #searchInput { margin: 10px; padding: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Bread Clicker 🍞</h1>
+  <div id="bread">🍞</div>
+  <p id="score">Migalhas: 0</p>
+  <button id="upgrade">Comprar manteiga (10 migalhas)</button>
+
+  <div>
+    <p><strong>Please write in PT-BR</strong></p>
+    <input type="text" id="countryInput" placeholder="Digite o nome do seu país">
+    <button id="joinCup">Entrar na Crumb Cup</button>
+  </div>
+
+  <div id="leaderboard">
+    <h2>Crumb Cup Leaderboard 🌍</h2>
+    <input type="text" id="searchInput" placeholder="Buscar país...">
+    <table>
+      <thead>
+        <tr><th>Ranking</th><th>País</th><th>Migalhas</th></tr>
+      </thead>
+      <tbody id="board"></tbody>
+    </table>
+  </div>
+
+  <script>
+    let crumbs = 0;
+    let perClick = 1;
+    let playerCountry = null;
+
+    const bread = document.getElementById("bread");
+    const scoreDisplay = document.getElementById("score");
+    const upgradeBtn = document.getElementById("upgrade");
+    const board = document.getElementById("board");
+    const joinBtn = document.getElementById("joinCup");
+    const countryInput = document.getElementById("countryInput");
+    const searchInput = document.getElementById("searchInput");
+
+    // Lista revisada de 196 países em PT-BR (com Taiwan, sem Coreia do Norte)
+    const countryNames = [
+      "Afeganistão","África do Sul","Albânia","Alemanha","Andorra","Angola","Arábia Saudita","Argélia","Argentina","Armênia",
+      "Austrália","Áustria","Azerbaijão","Bahamas","Bangladesh","Barbados","Barein","Bélgica","Belize","Benin",
+      "Bolívia","Bósnia e Herzegovina","Botsuana","Brasil","Brunei","Bulgária","Burkina Faso","Burundi","Butão","Cabo Verde",
+      "Camarões","Camboja","Canadá","Catar","Cazaquistão","Chade","Chile","China","Chipre","Colômbia",
+      "Comores","Congo","Coreia do Sul","Costa do Marfim","Costa Rica","Croácia","Cuba","Dinamarca","Dominica",
+      "Egito","El Salvador","Emirados Árabes Unidos","Equador","Eritreia","Eslováquia","Eslovênia","Espanha","Estados Unidos","Estônia",
+      "Etiópia","Fiji","Filipinas","Finlândia","França","Gabão","Gâmbia","Gana","Geórgia","Grécia",
+      "Granada","Guatemala","Guiana","Guiné","Guiné-Bissau","Guiné Equatorial","Haiti","Holanda","Honduras","Hungria",
+      "Iêmen","Índia","Indonésia","Irã","Iraque","Irlanda","Islândia","Israel","Itália","Jamaica",
+      "Japão","Jordânia","Kiribati","Kosovo","Kuwait","Laos","Lesoto","Letônia","Líbano","Libéria",
+      "Líbia","Liechtenstein","Lituânia","Luxemburgo","Macedônia do Norte","Madagascar","Malásia","Malawi","Maldivas","Mali",
+      "Malta","Marrocos","Maurícia","Mauritânia","México","Micronésia","Moçambique","Moldávia","Mônaco","Mongólia",
+      "Montenegro","Myanmar","Namíbia","Nauru","Nepal","Nicarágua","Níger","Nigéria","Noruega","Nova Zelândia",
+      "Omã","Palau","Panamá","Papua Nova Guiné","Paquistão","Paraguai","Peru","Polônia","Portugal","Quênia",
+      "Quirguistão","Reino Unido","República Centro-Africana","República Checa","República Democrática do Congo","República Dominicana","Romênia","Ruanda","Rússia","Samoa",
+      "San Marino","Santa Lúcia","São Cristóvão e Nevis","São Tomé e Príncipe","São Vicente e Granadinas","Seicheles","Senegal","Serra Leoa","Sérvia","Singapura",
+      "Síria","Somália","Sri Lanka","Suazilândia","Sudão","Sudão do Sul","Suécia","Suíça","Suriname","Tailândia",
+      "Taiwan","Tanzânia","Togo","Tonga","Trinidad e Tobago","Tunísia","Turcomenistão","Turquia","Tuvalu","Ucrânia",
+      "Uganda","Uruguai","Uzbequistão","Vanuatu","Vaticano","Venezuela","Vietnã","Zâmbia","Zimbábue"
+    ];
+
+    let countries = countryNames.map(name => ({ name, crumbs: 0 }));
+
+    function updateLeaderboard(filter = "") {
+      board.innerHTML = "";
+      countries
+        .filter(c => c.name.toLowerCase().includes(filter.toLowerCase()))
+        .sort((a,b) => b.crumbs - a.crumbs)
+        .forEach((c, index) => {
+          let row = `<tr><td>${index+1}º</td><td>${c.name}</td><td>${c.crumbs}</td></tr>`;
+          board.innerHTML += row;
+        });
+    }
+
+    bread.onclick = () => {
+      if (!playerCountry) {
+        alert("Escolha seu país para participar da Crumb Cup!");
+        return;
+      }
+      crumbs += perClick;
+      scoreDisplay.textContent = "Migalhas: " + crumbs;
+      let country = countries.find(c => c.name === playerCountry);
+      if (country) country.crumbs += perClick;
+      updateLeaderboard(searchInput.value);
+    };
+
+    upgradeBtn.onclick = () => {
+      if (crumbs >= 10) {
+        crumbs -= 10;
+        perClick++;
+        scoreDisplay.textContent = "Migalhas: " + crumbs;
+      }
+    };
+
+    joinBtn.onclick = () => {
+      const chosen = countryInput.value.trim();
+      if (countryNames.includes(chosen)) {
+        playerCountry = chosen;
+        alert("Você entrou na Crumb Cup representando " + playerCountry + "!");
+      } else {
+        alert("País não encontrado. Escreva em PT-BR conforme a lista.");
+      }
+    };
+
+    searchInput.oninput = () => {
+      updateLeaderboard(searchInput.value);
+    };
+
+    updateLeaderboard();
+  </script>
+</body>
+</html>
